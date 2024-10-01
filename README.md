@@ -1,2 +1,3 @@
-# gotest
-Juste pour tester un environnement go
+# gomud
+
+Try to code a mini mud using a discord bot and yaml files
