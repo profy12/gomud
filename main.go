@@ -11,6 +11,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type Session struct {
+	s *discordgo.Session
+	m *discordgo.MessageCreate
+	player Player
+}
+
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {

@@ -5,13 +5,14 @@ import (
 )
 
 var (
-	players = []string{}
+	players []Player
 )
 type Player struct {
 	Name string
-	state string
-	hp   int
-	mp   int
+	State string
+	Hitpoint   int
+	Manapoint   int
+	Session Session
 }
 
 func (p Player) Score() {
