@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/bwmarrin/discordgo"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,11 +15,10 @@ var (
 )
 
 type Player struct {
-	DiscordId string
-	Pseudo    string
-	State     string
-	Hitpoint  int
-	Manapoint int
+	Pseudo string `yaml:"pseudo"`
+	//State     string
+	//Hitpoint  int
+	//Manapoint int
 	// Session   Session
 }
 
@@ -26,28 +26,35 @@ type Player struct {
 //	p.Session.s.ChannelMessageSend(p.Session.m.ChannelID, msg)
 //}
 
-func (p Player) Score() {
-	fmt.Println("Nom : ", p.Pseudo)
-	fmt.Println("Points de vie :", p.Hitpoint)
+//	func (p Player) Score() {
+//		fmt.Println("Nom : ", p.Pseudo)
+//		fmt.Println("Points de vie :", p.Hitpoint)
+//	}
+func playerCreate(s *discordgo.Session, m *discordgo.MessageCreate) (*Player, error) {
+	s.ChannelMessageSendReply(m.ChannelID, "Quel est ton nom ?", m.MessageReference)
+	return nil, nil
 }
-func loadPlayer(id string) (*Player, error) {
+
+func playerLoad(id string) error {
+	var p *Player
 	p, exists := player[id]
 	if exists {
-		return p, nil
+		return nil
 	}
-	*p = Player{}
 	fileName := fmt.Sprintf("%s/%s.yml", playerDataDir, id)
 	f, err := os.Open(fileName)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	data, err := io.ReadAll(f)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	err = yaml.Unmarshal(data, p)
+	//pl := Player{}
+	err = yaml.Unmarshal(data, &p)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return p, nil
+	player[id] = p
+	return nil
 }

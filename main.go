@@ -76,11 +76,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "Ping!")
 	}
 	if m.Content == "start" {
-		s.ChannelMessageSendReply(m.ChannelID, "Okki on y va", m.MessageReference)
-		p, err := loadPlayer(m.Author.ID)
+		s.ChannelMessageSend(m.ChannelID, "Okki on y va")
+		err := playerLoad(m.Author.Username)
 		if err != nil {
-			//p, err := createPlayer(m.Author.ID)
+			log.Printf("Impossible de charger le joueur : %v", err)
+		} else {
+			log.Printf("Welcome back %v", player[m.Author.Username].Pseudo)
+			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Welcome back %v", player[m.Author.Username].Pseudo))
 		}
-		log.Printf("Welcome back to %#v", p)
 	}
 }
