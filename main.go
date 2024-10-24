@@ -11,9 +11,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const (
+	playerDataDir = "data/players"
+)
+
 type Session struct {
-	s *discordgo.Session
-	m *discordgo.MessageCreate
+	s      *discordgo.Session
+	m      *discordgo.MessageCreate
 	player Player
 }
 
@@ -70,5 +74,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// If the message is "pong" reply with "Ping!"
 	if m.Content == "pong" {
 		s.ChannelMessageSend(m.ChannelID, "Ping!")
+	}
+	if m.Content == "start" {
+		s.ChannelMessageSendReply(m.ChannelID, "Okki on y va", m.MessageReference)
+		p, err := loadPlayer(m.Author.ID)
+		if err != nil {
+			//p, err := createPlayer(m.Author.ID)
+		}
+		log.Printf("Welcome back to %#v", p)
 	}
 }
