@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -10,13 +11,14 @@ import (
 )
 
 var (
-	players = []Player{}
-	player  = make(map[string]*Player)
+	players         = []Player{}
+	player          = make(map[string]*Player)
+	ErrUnregistered = errors.New("unregistered: the player is unknown")
 )
 
 type Player struct {
 	Pseudo string `yaml:"pseudo"`
-	//State     string
+	State  string
 	//Hitpoint  int
 	//Manapoint int
 	// Session   Session
@@ -32,29 +34,32 @@ type Player struct {
 //	}
 func playerCreate(s *discordgo.Session, m *discordgo.MessageCreate) (*Player, error) {
 	s.ChannelMessageSendReply(m.ChannelID, "Quel est ton nom ?", m.MessageReference)
+
 	return nil, nil
 }
 
-func playerLoad(id string) error {
+func playerLoad(id string) (*Player, error) {
 	var p *Player
 	p, exists := player[id]
 	if exists {
-		return nil
+		return p, nil
 	}
 	fileName := fmt.Sprintf("%s/%s.yml", playerDataDir, id)
 	f, err := os.Open(fileName)
 	if err != nil {
-		return err
+		pl := &Player{State: "needPseudo"}
+		player[id] = pl
+		return pl, ErrUnregistered
 	}
 	data, err := io.ReadAll(f)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	//pl := Player{}
 	err = yaml.Unmarshal(data, &p)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	player[id] = p
-	return nil
+	return p, nil
 }

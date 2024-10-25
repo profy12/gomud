@@ -75,14 +75,46 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "pong" {
 		s.ChannelMessageSend(m.ChannelID, "Ping!")
 	}
-	if m.Content == "start" {
-		s.ChannelMessageSend(m.ChannelID, "Okki on y va")
-		err := playerLoad(m.Author.Username)
-		if err != nil {
-			log.Printf("Impossible de charger le joueur : %v", err)
-		} else {
-			log.Printf("Welcome back %v", player[m.Author.Username].Pseudo)
-			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Welcome back %v", player[m.Author.Username].Pseudo))
-		}
+	pl, err := playerLoad(m.Author.Username)
+	if err != nil {
+		log.Printf("Erreur lors du chargement de l'utilisateur : %s", err)
 	}
+	switch pl.State {
+	// Player is new, we ask him his pseudo
+	case "needPseudo":
+		log.Printf("%s state is %s", m.Author.Username, pl.State)
+		s.ChannelMessageSend(m.ChannelID, "Bienvenue, peux tu me donner ton pseudo ?")
+		pl.State = "waitPseudo"
+	// Player should send us a pseudo
+	case "waitPseudo":
+		log.Printf("%s state is %s", m.Author.Username, pl.State)
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Est tu certain que tu souhaite %s comme pseudonyme ? (o/n)", m.Content))
+		pl.State = "confirmPseudo"
+		pl.Pseudo = m.Content
+	case "confirmPseudo":
+		if m.Content == "o" {
+			log.Printf("%s state is %s", m.Author.Username, pl.State)
+			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Bienvenue %s !", pl.Pseudo))
+			pl.State = "active"
+		} else {
+			pl.State = "needPseudo"
+		}
+	case "active":
+		log.Printf("%s state is %s", m.Author.Username, pl.State)
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Hey %v je crois qu'il serait temps d'implémenter des commandes, veux tu m'aider ?", pl.Pseudo))
+	default:
+		log.Printf("%s state -%s- is unknown", m.Author.Username, pl.State)
+	}
+	//	if err != nil {
+	//		log.Printf("Impossible de charger le joueur : %v", err)
+	//		if errors.Is(err, ErrUnregistered) {
+	//			playerCreate(s, m)
+	//		} else {
+	//			s.ChannelMessageSend(m.ChannelID, "Impossible de charger ton profil")
+	//			log.Printf("Unable to load profil of %s", m.Author.Username)
+	//		}
+	//	} else {
+	//
+	//		log.Printf("Welcome back %v", player[m.Author.Username].Pseudo)
+	//	}
 }
