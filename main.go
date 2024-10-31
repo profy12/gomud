@@ -21,6 +21,11 @@ type Session struct {
 	player Player
 }
 
+var (
+	dg      *discordgo.Session
+	guildId string
+)
+
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -30,8 +35,12 @@ func main() {
 	if token == "" {
 		log.Fatalf("Le token n'est pas défini dans le fichier .env")
 	}
+	guildId = os.Getenv("GUILD_ID")
+	if guildId == "" {
+		log.Fatalln("GUILD_ID doit être défini dans le fichier .env")
+	}
 	fmt.Println("Démarrage du bot")
-	dg, err := discordgo.New("Bot " + token)
+	dg, err = discordgo.New("Bot " + token)
 	if err != nil {
 		log.Fatalf("Unable to connect on Discord: %v", err)
 
@@ -61,7 +70,7 @@ func main() {
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	fmt.Println("message reçu")
+	//fmt.Println("message reçu")
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.State.User.ID {
@@ -85,12 +94,14 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		log.Printf("%s state is %s", m.Author.Username, pl.State)
 		s.ChannelMessageSend(m.ChannelID, "Bienvenue, peux tu me donner ton pseudo ?")
 		pl.State = "waitPseudo"
+		pl.playerSave()
 	// Player should send us a pseudo
 	case "waitPseudo":
 		log.Printf("%s state is %s", m.Author.Username, pl.State)
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Est tu certain que tu souhaite %s comme pseudonyme ? (o/n)", m.Content))
 		pl.State = "confirmPseudo"
 		pl.Pseudo = m.Content
+		pl.playerSave()
 	case "confirmPseudo":
 		if m.Content == "o" {
 			log.Printf("%s state is %s", m.Author.Username, pl.State)
@@ -98,23 +109,23 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			pl.State = "active"
 		} else {
 			pl.State = "needPseudo"
+			break
 		}
+		st, err := s.GuildChannelCreate(guildId, pl.DiscordPseudo, discordgo.ChannelTypeGuildText)
+		if err != nil {
+			log.Printf("Unable to create player channel: %v", err)
+		}
+		pl.DiscordChannel = st.ID
+		pl.playerSave()
 	case "active":
+		err := s.ChannelMessageDelete(pl.DiscordChannel, m.ID)
+		if err != nil {
+			log.Printf("Unable to delete message: %v", err)
+		}
 		log.Printf("%s state is %s", m.Author.Username, pl.State)
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Hey %v je crois qu'il serait temps d'implémenter des commandes, veux tu m'aider ?", pl.Pseudo))
+		pl.parseCommand(m.Content)
 	default:
 		log.Printf("%s state -%s- is unknown", m.Author.Username, pl.State)
 	}
-	//	if err != nil {
-	//		log.Printf("Impossible de charger le joueur : %v", err)
-	//		if errors.Is(err, ErrUnregistered) {
-	//			playerCreate(s, m)
-	//		} else {
-	//			s.ChannelMessageSend(m.ChannelID, "Impossible de charger ton profil")
-	//			log.Printf("Unable to load profil of %s", m.Author.Username)
-	//		}
-	//	} else {
-	//
-	//		log.Printf("Welcome back %v", player[m.Author.Username].Pseudo)
-	//	}
+	//pl.DiscordChannel = m.ChannelID
 }
