@@ -6,36 +6,40 @@ import (
 	"strings"
 )
 
-var (
-	commands []Command
-)
-
-type Command struct {
-	Name  string
-	State bool
-}
-
 func (p Player) parseCommand(msg string) error {
-	log.Printf("Commande reçu avant split : %v", msg)
+	//log.Printf("Commande reçu avant split : %v", msg)
 	command, options, option := strings.Cut(msg, " ")
-	log.Printf("Commande reçu : %v", command)
+	log.Printf("Commande %s envoyée par %v", command, p.Pseudo)
 	switch command {
 	case "help", "h":
 		if option {
-			p.msg(fmt.Sprintf("Tu as besoin d'aide sur %v", options))
+			subcommand, _, opt := strings.Cut(options, " ")
+			if !opt {
+				p.msg(fmt.Sprintf("Aide de %v", subcommand))
+				switch subcommand {
+				case "parler":
+					p.msg("Parler permet d'envoyer un message à tout le monde, tu peux aussi utiliser p ou gossip pour aller plus vite !")
+				case "save":
+					p.msg("Permet de sauvegarder ton personnage, pas très utile car doit se faire tout seul")
+				default:
+					p.msg("Commande inconnue, ou non documentée")
+				}
+			} else {
+				p.msg("Mauvaise syntaxe, utilise help <commande>")
+			}
 		} else {
 			p.msg("Commandes dispos : parler, save")
 		}
 	case "save":
 		p.playerSave()
-	case "parler", "p", "gossip":
+	case "parler", "p", "gossip", "g":
 		if option {
 			gossip(options, p.Pseudo)
 		} else {
 			p.msg("mais que veux tu dire exactement ?")
 		}
 	default:
-		p.msg(fmt.Sprintf("%v: command unknown", command))
+		p.msg(fmt.Sprintf("%v: commande inconnue", command))
 	}
 	return nil
 }

@@ -15,12 +15,6 @@ const (
 	playerDataDir = "data/players"
 )
 
-type Session struct {
-	s      *discordgo.Session
-	m      *discordgo.MessageCreate
-	player Player
-}
-
 var (
 	dg      *discordgo.Session
 	guildId string
