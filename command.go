@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (p Player) parseCommand(msg string) error {
+func (p *Player) parseCommand(msg string) error {
 	//log.Printf("Commande reçu avant split : %v", msg)
 	command, options, option := strings.Cut(msg, " ")
 	log.Printf("Commande %s envoyée par %v", command, p.Pseudo)
@@ -29,6 +29,14 @@ func (p Player) parseCommand(msg string) error {
 			}
 		} else {
 			p.msg("Commandes dispos : parler, save")
+		}
+	case "score", "sc":
+		p.score()
+	case "tick":
+		p.tick()
+	case "desc", "description":
+		if option {
+			p.Description = options
 		}
 	case "save":
 		p.playerSave()
