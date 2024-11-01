@@ -88,6 +88,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if err != nil {
 		log.Printf("Erreur lors du chargement de l'utilisateur : %s", err)
 	}
+setState:
 	switch pl.State {
 	// Player is new, we ask him his pseudo
 	case "needPseudo":
@@ -103,19 +104,22 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		pl.Pseudo = m.Content
 		pl.playerSave()
 	case "confirmPseudo":
-		if m.Content == "o" {
+		switch m.Content {
+		case "o", "O", "y", "Y":
 			log.Printf("%s state is %s", m.Author.Username, pl.State)
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Bienvenue %s !", pl.Pseudo))
 			pl.State = "active"
-		} else {
-			pl.State = "needPseudo"
-			break
+		default:
+			pl.State = "waitPseudo"
+			s.ChannelMessageSend(m.ChannelID, "Et donc que veux tu comme pseudo ?")
+			break setState
 		}
 		st, err := s.GuildChannelCreate(guildId, pl.DiscordPseudo, discordgo.ChannelTypeGuildText)
 		if err != nil {
 			log.Printf("Unable to create player channel: %v", err)
 		}
 		pl.DiscordChannel = st.ID
+		pl.msg("Maintenant c'est ici que ça se passe")
 		pl.playerSave()
 	case "active":
 		err := s.ChannelMessageDelete(pl.DiscordChannel, m.ID)

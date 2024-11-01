@@ -10,10 +10,17 @@ import (
 )
 
 var (
-	players         []*Player
 	player          = make(map[string]*Player)
 	ErrUnregistered = errors.New("unregistered: the player is unknown")
 )
+
+// send message to all players
+func gossip(msg string, from string) {
+	message := fmt.Sprintf("(%v): %v", from, msg)
+	for _, pl := range player {
+		pl.msg(message)
+	}
+}
 
 type Player struct {
 	Pseudo         string `yaml:"pseudo"`

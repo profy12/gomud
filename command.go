@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -15,23 +16,26 @@ type Command struct {
 }
 
 func (p Player) parseCommand(msg string) error {
-	params := strings.SplitN(msg, " ", 1)
-	command := params[0]
-	var options string
-	if len(params) > 1 {
-		options = params[1]
-	}
+	log.Printf("Commande reçu avant split : %v", msg)
+	command, options, option := strings.Cut(msg, " ")
+	log.Printf("Commande reçu : %v", command)
 	switch command {
-	case "help":
-		if options != "" {
+	case "help", "h":
+		if option {
 			p.msg(fmt.Sprintf("Tu as besoin d'aide sur %v", options))
 		} else {
-			p.msg("Commandes dispos : help, save")
+			p.msg("Commandes dispos : parler, save")
 		}
 	case "save":
 		p.playerSave()
+	case "parler", "p", "gossip":
+		if option {
+			gossip(options, p.Pseudo)
+		} else {
+			p.msg("mais que veux tu dire exactement ?")
+		}
 	default:
-		p.msg("Command unknown")
+		p.msg(fmt.Sprintf("%v: command unknown", command))
 	}
 	return nil
 }
