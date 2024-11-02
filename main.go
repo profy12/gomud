@@ -13,6 +13,8 @@ import (
 
 const (
 	playerDataDir = "data/players"
+	roomDataDir   = "data/rooms"
+	defaultRoom   = "taverne"
 )
 
 var (

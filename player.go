@@ -1,42 +1,14 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"gopkg.in/yaml.v3"
 )
-
-var (
-	player          = make(map[string]*Player)
-	topicBusy       = make(map[string]bool)
-	ErrUnregistered = errors.New("unregistered: the player is unknown")
-)
-
-// send message to all players
-func gossip(msg string, from string) {
-	message := fmt.Sprintf("(%v): %v", from, msg)
-	for _, pl := range player {
-		pl.msg(message)
-	}
-}
-
-func tick() {
-	for {
-		log.Printf("Wait for next tick")
-		time.Sleep(time.Minute)
-		log.Printf("Start a new tick")
-		for _, pl := range player {
-			log.Printf("Tick for %v", pl.Pseudo)
-			go pl.tick()
-		}
-	}
-}
 
 type Player struct {
 	Pseudo         string `yaml:"pseudo"`
@@ -45,14 +17,15 @@ type Player struct {
 	DiscordChannel string `yaml:"discord_channel"`
 	Description    string
 	ScoreId        string `yaml:"score_message_id"`
-	HpMax          int
-	MpMax          int
-	HpCur          int
-	MpCur          int
+	RoomId         string `yaml:"room_id"`
+	HpMax          uint
+	MpMax          uint
+	HpCur          uint
+	MpCur          uint
 	// Session   Session
 }
 
-func (p *Player) tick() {
+func (p *Player) tick() {RoomLoad(defaultRoom)
 	changed := false
 	if p.HpCur < p.HpMax {
 		p.HpCur++
@@ -66,7 +39,7 @@ func (p *Player) tick() {
 		log.Printf("%v regen", p.Pseudo)
 		//p.msg("Vous vous régénérez")
 		go p.refreshTopic()
-		p.score()
+		p.score(false)
 	}
 }
 
@@ -91,7 +64,7 @@ func (p Player) refreshTopic() {
 	log.Printf("topic de %v mis à jour", p.Pseudo)
 	topicBusy[p.DiscordChannel] = false
 }
-func (p *Player) score() {
+func (p *Player) score(create bool) {
 	embed := discordgo.MessageEmbed{
 		Title:       p.Pseudo,
 		Description: p.Description,
@@ -121,7 +94,7 @@ func (p *Player) score() {
 	}
 	var message *discordgo.Message
 	var err error
-	if p.ScoreId != "" {
+	if p.ScoreId != "" && !create {
 		message, err = dg.ChannelMessageEditEmbed(p.DiscordChannel, p.ScoreId, &embed)
 	} else {
 		message, err = dg.ChannelMessageSendEmbed(p.DiscordChannel, &embed)
@@ -133,35 +106,7 @@ func (p *Player) score() {
 	p.playerSave()
 
 }
-func (p Player) msgExt(msg string) {
-	//dg.ChannelMessageSend(p.DiscordChannel, msg)
-	embed := discordgo.MessageEmbed{
-		Title:       "Test embed",
-		Description: "Pas certain que ce soit suffisant",
-		Color:       0x00ff00,
-		Fields: []*discordgo.MessageEmbedField{
-			{
-				Name:   "Champ 1",
-				Value:  "Valeur du champ 1",
-				Inline: true,
-			},
-			{
-				Name:   "Champ 2",
-				Value:  "Valeur du champ 2",
-				Inline: true,
-			},
-		},
-	}
-	_, err := dg.ChannelMessageSendEmbed(p.DiscordChannel, &embed)
-	if err != nil {
-		log.Printf("Erreur pendant l'envoie de l'embed : %v", err)
-	}
-}
 
-//	func (p Player) Score() {
-//		fmt.Println("Nom : ", p.Pseudo)
-//		fmt.Println("Points de vie :", p.Hitpoint)
-//	}
 func (p Player) playerSave() error {
 	log.Printf("Starting saving %v to file", p.Pseudo)
 	data, err := yaml.Marshal(p)
@@ -198,6 +143,7 @@ func playerLoad(id string) (*Player, error) {
 			MpMax:         10,
 			HpCur:         1,
 			MpCur:         1,
+			RoomId:        defaultRoom,
 			DiscordPseudo: id,
 		}
 		player[id] = pl
