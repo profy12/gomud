@@ -25,6 +25,8 @@ func (p *Player) parseCommand(msg string) error {
 					p.msg("score, sc : Permet d'actualiser ou de créer un nouveau message de score, score pour actualiser et score add pour créer un nouveau message de score")
 				case "look":
 					p.msg("look, l : Permet de regarder autour de vous")
+				case "desc":
+					p.msg("descr : Permet de changer votre description")
 				default:
 					p.msg("Commande inconnue, ou non documentée")
 				}
@@ -43,6 +45,15 @@ func (p *Player) parseCommand(msg string) error {
 			}
 		}
 		p.score(false)
+	case "delete":
+		if option {
+			if options == "!" {
+				p.del()
+				break
+			}
+		}
+		p.msg("delete cancelled")
+
 	case "look", "l":
 		r, err := RoomLoad(p.RoomId)
 		if err != nil {
@@ -56,6 +67,7 @@ func (p *Player) parseCommand(msg string) error {
 	case "desc", "description":
 		if option {
 			p.Description = options
+			p.score(false)
 		}
 	case "save":
 		p.playerSave()

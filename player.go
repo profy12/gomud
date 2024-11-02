@@ -25,7 +25,8 @@ type Player struct {
 	// Session   Session
 }
 
-func (p *Player) tick() {RoomLoad(defaultRoom)
+func (p *Player) tick() {
+	RoomLoad(defaultRoom)
 	changed := false
 	if p.HpCur < p.HpMax {
 		p.HpCur++
@@ -47,6 +48,18 @@ func (p Player) msg(msg string) {
 	dg.ChannelMessageSend(p.DiscordChannel, msg)
 }
 
+func (p Player) getFileName() string {
+	return fmt.Sprintf("%s/%s.yml", playerDataDir, p.DiscordPseudo)
+}
+func (p Player) del() error {
+	err := os.Remove(p.getFileName())
+	if err != nil {
+		log.Printf("Deleting user: %v", err)
+		return err
+	}
+	delete(player, p.DiscordPseudo)
+	return nil
+}
 func (p Player) refreshTopic() {
 	// si ce topic est déjà en train d'être mis à jour on annule
 	if topicBusy[p.DiscordChannel] {
