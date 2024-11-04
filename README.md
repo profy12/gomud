@@ -8,7 +8,9 @@ The idea here is to code a multi player but very simple RPG.
 
 Setup an env file .env with a DISCORD_TOKEN inside.
 
-## Tutorial
+## TODO
+
+Display room
 
 ### Init our go project
 

@@ -19,6 +19,10 @@ type Room struct {
 	Id   string `yaml:"id"`
 }
 
+func (r Room) Display(){
+	
+}
+
 func RoomLoad(id string) (*Room, error) {
 	var r *Room
 	r, exists := room[id]
