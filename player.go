@@ -17,6 +17,7 @@ type Player struct {
 	DiscordChannel string `yaml:"discord_channel"`
 	Description    string
 	ScoreId        string `yaml:"score_message_id"`
+	RoomScreenId   string `yaml:"room_screen_id"`
 	RoomId         string `yaml:"room_id"`
 	HpMax          uint
 	MpMax          uint
@@ -76,6 +77,21 @@ func (p Player) refreshTopic() {
 	}
 	log.Printf("topic de %v mis à jour", p.Pseudo)
 	topicBusy[p.DiscordChannel] = false
+}
+func (p *Player) look(create bool) {
+	embed := room[p.RoomId].Display()
+	var message *discordgo.Message
+	var err error
+	if p.RoomScreenId != "" && !create {
+		message, err = dg.ChannelMessageEditEmbed(p.DiscordChannel, p.RoomScreenId, &embed)
+	} else {
+		message, err = dg.ChannelMessageSendEmbed(p.DiscordChannel, &embed)
+	}
+	if err != nil {
+		log.Printf("Erreur pendant l'envoie de l'embed : %v", err)
+	}
+	p.RoomScreenId = message.ID
+	p.playerSave()
 }
 func (p *Player) score(create bool) {
 	embed := discordgo.MessageEmbed{

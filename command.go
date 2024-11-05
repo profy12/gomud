@@ -60,7 +60,14 @@ func (p *Player) parseCommand(msg string) error {
 			log.Printf("command look, unable to load room: %v", err)
 			p.msg("Vous n'êtes nulle part et ce n'est pas normal !")
 		} else {
-			p.msg(fmt.Sprintf("Vous êtes dans %v", r.Name))
+			new := false
+			if option {
+				if options == "add" {
+					new = true
+				}
+			}
+			p.look(new)
+			log.Printf("Room : %#v", r)
 		}
 	case "tick":
 		p.tick()

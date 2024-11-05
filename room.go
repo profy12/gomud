@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/bwmarrin/discordgo"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,13 +15,46 @@ var (
 )
 
 type Room struct {
-	Name string `yaml:"name"`
-	Desc string `yaml:"desc"`
-	Id   string `yaml:"id"`
+	Name  string `yaml:"name"`
+	Desc  string `yaml:"desc"`
+	Id    string `yaml:"id"`
+	Temp  int
+	Peace bool
+	Dark  bool
+	Exits map[string]Exit
 }
 
-func (r Room) Display(){
-	
+type Exit struct {
+	Target string
+	Lock   bool
+	Desc   string
+	Hidden bool
+}
+
+func (r Room) Display() discordgo.MessageEmbed {
+	embed := discordgo.MessageEmbed{
+		Title:       r.Name,
+		Description: r.Desc,
+		Color:       0x00ff00,
+	}
+	exitLabel := "<"
+	for ex, exit := range r.Exits {
+		if exit.Hidden {
+			continue
+		}
+		f := discordgo.MessageEmbedField{
+			Name:   ex,
+			Value:  exit.Desc,
+			Inline: false,
+		}
+		exitLabel = exitLabel + " " + ex
+		embed.Fields = append(embed.Fields, &f)
+	}
+	exitLabel = exitLabel + " >"
+	//append(embed.Fields, )
+	embed.Footer = &discordgo.MessageEmbedFooter{Text: exitLabel}
+	return embed
+
 }
 
 func RoomLoad(id string) (*Room, error) {

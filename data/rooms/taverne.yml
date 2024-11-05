@@ -2,3 +2,16 @@
 name: La taverne
 id: taverne
 desc: Une grande taverne bruyante et agréable
+exits:
+  s: 
+    target: terrasse
+    desc: Donne sur une grande terrasse
+    lock: false
+  u:
+    target: dortoir
+    desc: Un escalier permet de monter à l'étage supérieur
+    lock: false
+  d:
+    target: cave
+    desc: Sous le tapis de l'entrée vous découvrez une trappe
+    hidden: true
