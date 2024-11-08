@@ -10,7 +10,7 @@ Setup an env file .env with a DISCORD_TOKEN inside.
 
 ## TODO
 
-Display room
+Display players in room
 
 ### Init our go project
 

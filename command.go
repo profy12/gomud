@@ -13,7 +13,6 @@ func (p *Player) parseCommand(msg string) error {
 	switch command {
 	case "s", "n", "u", "e", "w", "d":
 		if p.isExit(command) {
-			p.msg(fmt.Sprint("Going to ", command))
 			p.mv(command)
 		} else {
 			p.msg("Tu pense trouver quoi par ici ?")

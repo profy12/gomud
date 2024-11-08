@@ -27,10 +27,15 @@ type Room struct {
 	Positions map[string]*Position
 	Exits     map[string]Exit
 }
+
+// allow to know : how long a player is in room
+// and list players in rooms
+
 type Position struct {
 	ArrivedAt time.Time
 }
 
+// Allow to navigate between rooms
 type Exit struct {
 	Target string
 	Lock   bool

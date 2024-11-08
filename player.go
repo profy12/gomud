@@ -24,6 +24,7 @@ type Player struct {
 	MpMax          uint
 	HpCur          uint
 	MpCur          uint
+	Tired          uint
 	// Session   Session
 }
 
@@ -36,6 +37,10 @@ func (p *Player) tick() {
 	}
 	if p.MpCur < p.MpMax {
 		p.MpCur++
+		changed = true
+	}
+	if p.Tired > 0 {
+		p.Tired--
 		changed = true
 	}
 	if changed {
@@ -57,6 +62,8 @@ func (p *Player) mv(exit string) error {
 	p.RoomId = ex.Target
 	newRoom.Positions[p.DiscordPseudo] = &Position{ArrivedAt: time.Now()}
 	p.look(false)
+	p.Tired++
+	p.score(false)
 	p.playerSave()
 	return nil
 }
@@ -133,6 +140,11 @@ func (p *Player) score(create bool) {
 			{
 				Name:   "Mana",
 				Value:  fmt.Sprintf("%d/%d", p.MpCur, p.MpMax),
+				Inline: true,
+			},
+			{
+				Name:   "Fatigue",
+				Value:  fmt.Sprintf("%d", p.Tired),
 				Inline: true,
 			},
 		},
