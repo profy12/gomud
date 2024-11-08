@@ -22,3 +22,18 @@ func TestCreatePlayer(t *testing.T) {
 		t.Fatalf("Unable to delete test user: %v", err)
 	}
 }
+
+func TestMovePlayer(t *testing.T) {
+	p, err := playerLoad("test_joueur")
+	if !errors.Is(err, ErrUnregistered) {
+		t.Fatalf("Le player de test ne devrait pas exister: %v", err)
+	}
+	RoomLoad(p.RoomId)
+	if !p.isExit("u") {
+		t.Fatalf("up devrait être une sortie de la piece par defaut")
+	}
+	if p.isExit("z") {
+		t.Fatalf("z ne sera jamais une sortie")
+	}
+	p.del()
+}

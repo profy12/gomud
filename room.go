@@ -5,23 +5,30 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"gopkg.in/yaml.v3"
 )
 
 var (
-	room = make(map[string]*Room)
+	rooms = make(map[string]*Room)
+	//people = make(map[string] map[string]*Player)
 )
 
 type Room struct {
-	Name  string `yaml:"name"`
-	Desc  string `yaml:"desc"`
-	Id    string `yaml:"id"`
-	Temp  int
-	Peace bool
-	Dark  bool
-	Exits map[string]Exit
+	Name      string `yaml:"name"`
+	ShortDesc string `yaml:"short_desc"`
+	Desc      string `yaml:"desc"`
+	Id        string `yaml:"id"`
+	Temp      int
+	Peace     bool
+	Dark      bool
+	Positions map[string]*Position
+	Exits     map[string]Exit
+}
+type Position struct {
+	ArrivedAt time.Time
 }
 
 type Exit struct {
@@ -59,7 +66,7 @@ func (r Room) Display() discordgo.MessageEmbed {
 
 func RoomLoad(id string) (*Room, error) {
 	var r *Room
-	r, exists := room[id]
+	r, exists := rooms[id]
 	if !exists {
 		filename := fmt.Sprintf("%s/%s.yml", roomDataDir, id)
 		f, err := os.Open(filename)
@@ -73,7 +80,11 @@ func RoomLoad(id string) (*Room, error) {
 			log.Printf("Loading room: %v", err)
 		}
 		yaml.Unmarshal(data, &r)
-		room[id] = r
+		log.Printf("Loading room: %v", r)
+		if r.Positions == nil {
+			r.Positions = make(map[string]*Position)
+		}
+		rooms[id] = r
 	}
 	return r, nil
 }

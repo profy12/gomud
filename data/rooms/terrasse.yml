@@ -1,0 +1,13 @@
+name: Une grande terrasse
+id: terrasse
+desc: Une grande terrasse ensoleillée
+positions:
+exits:
+  s:
+    target: precipice
+    desc: Un grand precipice
+    lock: false
+  n:
+    target: taverne
+    desc: La taverne
+    lock: false

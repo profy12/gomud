@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"gopkg.in/yaml.v3"
@@ -45,6 +46,21 @@ func (p *Player) tick() {
 	}
 }
 
+func (p *Player) mv(exit string) error {
+	ex := rooms[p.RoomId].Exits[exit]
+	oldRoom, _ := RoomLoad(p.RoomId)
+	newRoom, err := RoomLoad(ex.Target)
+	if err != nil {
+		return fmt.Errorf("%v moving from %v to %v: %v", p.Pseudo, rooms[p.RoomId].Name, ex.Target, err)
+	}
+	delete(oldRoom.Positions, p.DiscordPseudo)
+	p.RoomId = ex.Target
+	newRoom.Positions[p.DiscordPseudo] = &Position{ArrivedAt: time.Now()}
+	p.look(false)
+	p.playerSave()
+	return nil
+}
+
 func (p Player) msg(msg string) {
 	dg.ChannelMessageSend(p.DiscordChannel, msg)
 }
@@ -58,7 +74,7 @@ func (p Player) del() error {
 		log.Printf("Deleting user: %v", err)
 		return err
 	}
-	delete(player, p.DiscordPseudo)
+	delete(players, p.DiscordPseudo)
 	return nil
 }
 func (p Player) refreshTopic() {
@@ -79,7 +95,7 @@ func (p Player) refreshTopic() {
 	topicBusy[p.DiscordChannel] = false
 }
 func (p *Player) look(create bool) {
-	embed := room[p.RoomId].Display()
+	embed := rooms[p.RoomId].Display()
 	var message *discordgo.Message
 	var err error
 	if p.RoomScreenId != "" && !create {
@@ -136,6 +152,14 @@ func (p *Player) score(create bool) {
 
 }
 
+func (p Player) isExit(ex string) bool {
+	for d := range rooms[p.RoomId].Exits {
+		if ex == d {
+			return true
+		}
+	}
+	return false
+}
 func (p Player) playerSave() error {
 	log.Printf("Starting saving %v to file", p.Pseudo)
 	data, err := yaml.Marshal(p)
@@ -157,7 +181,7 @@ func (p Player) playerSave() error {
 // id is the discord pseudo
 func playerLoad(id string) (*Player, error) {
 	var p *Player
-	p, exists := player[id]
+	p, exists := players[id]
 	if exists {
 		return p, nil
 	}
@@ -175,7 +199,7 @@ func playerLoad(id string) (*Player, error) {
 			RoomId:        defaultRoom,
 			DiscordPseudo: id,
 		}
-		player[id] = pl
+		players[id] = pl
 		return pl, ErrUnregistered
 	}
 	data, err := io.ReadAll(f)
@@ -187,6 +211,11 @@ func playerLoad(id string) (*Player, error) {
 	if err != nil {
 		return nil, err
 	}
-	player[id] = p
+	players[id] = p
+	_, err = RoomLoad(p.RoomId)
+	if err != nil {
+		log.Printf("command look, unable to load room: %v", err)
+		p.msg("Vous n'êtes nulle part et ce n'est pas normal !")
+	}
 	return p, nil
 }
