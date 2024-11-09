@@ -29,6 +29,9 @@ type Player struct {
 }
 
 func (p *Player) tick() {
+	if p.State != "active" {
+		return
+	}
 	RoomLoad(defaultRoom)
 	changed := false
 	if p.HpCur < p.HpMax {

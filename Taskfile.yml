@@ -8,11 +8,24 @@ vars:
 tasks:
   default:
     cmds:
+      - task: build
+      - task: stop
+      - task: deploy
       - task: run
-    silent: true
-  run:
+  local-run:
     cmds:
       - go run .
   build:
     cmds:
-      - go build -o bin/gomud .
+      - GOOS=linux GOARCH=arm64 go build -o bin/gomud-arm .
+  deploy:
+    cmds:
+      - rsync -a -P data/rooms/*.yml ubuntu@server.myosis.dev:/home/ubuntu/data/rooms/
+      - scp .env bin/gomud-arm ubuntu@server.myosis.dev:/home/ubuntu/
+  stop:
+    cmds:
+      - ssh ubuntu@server.myosis.dev "pkill -f gomud-arm"
+    ignore_error: true
+  run:
+    cmds:
+      - ssh ubuntu@server.myosis.dev "./gomud-arm"

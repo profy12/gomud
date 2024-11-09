@@ -53,6 +53,7 @@ func main() {
 		fmt.Println("error opening connection,", err)
 		return
 	}
+	go RoomLoad("taverne")
 	go tick()
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running. Press CTRL-C to exit.")
@@ -117,6 +118,8 @@ setState:
 		pl.DiscordChannel = st.ID
 		pl.msg("Maintenant c'est ici que ça se passe")
 		pl.refreshTopic()
+		pl.score(true)
+		pl.look(true)
 		pl.playerSave()
 	case "active":
 		err := s.ChannelMessageDelete(pl.DiscordChannel, m.ID)

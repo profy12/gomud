@@ -1,13 +1,9 @@
+---
 name: Une grande terrasse
 id: terrasse
-desc: Une grande terrasse ensoleillée
-positions:
+desc: La terrasse surplombe la vallée et donne vue sur un paysage dévasté et volcanique.
 exits:
-  s:
-    target: precipice
-    desc: Un grand precipice
-    lock: false
-  n:
+  n: 
     target: taverne
-    desc: La taverne
+    desc: rentrer dans la taverne
     lock: false
