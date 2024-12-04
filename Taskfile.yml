@@ -2,9 +2,6 @@
 
 version: '3'
 
-vars:
-  GREETING: Hello, World!
-
 tasks:
   default:
     cmds:
@@ -20,12 +17,15 @@ tasks:
       - GOOS=linux GOARCH=arm64 go build -o bin/gomud-arm .
   deploy:
     cmds:
-      - rsync -a -P data/rooms/*.yml ubuntu@server.myosis.dev:/home/ubuntu/data/rooms/
-      - scp .env bin/gomud-arm ubuntu@server.myosis.dev:/home/ubuntu/
+      - ssh gomud@server.myosis.dev "mkdir -p data/rooms"
+      - ssh gomud@server.myosis.dev "mkdir -p bin"
+      - rsync -a -P data/rooms/*.yml gomud@server.myosis.dev:/home/gomud/data/rooms/
+      - scp .env gomud@server.myosis.dev:/home/gomud/
+      - scp bin/gomud-arm gomud@server.myosis.dev:/home/gomud/bin/gomud-arm
   stop:
     cmds:
-      - ssh ubuntu@server.myosis.dev "pkill -f gomud-arm"
+      - ssh gomud@server.myosis.dev "systemctl --user stop gomud"
     ignore_error: true
   run:
     cmds:
-      - ssh ubuntu@server.myosis.dev "./gomud-arm"
+      - ssh gomud@server.myosis.dev "systemctl --user start gomud"
